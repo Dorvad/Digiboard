@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { upsertSession, fetchNotes, revealNote, deleteAllNotes, toggleSessionLock } from '@/lib/session'
+import { upsertSession, fetchNotes, revealNote, closeNote, deleteAllNotes, toggleSessionLock } from '@/lib/session'
 import type { Session, Note } from '@/types/database'
 import BoardSide from './BoardSide'
 import AdminToolbar from './AdminToolbar'
@@ -148,7 +148,6 @@ export default function CorkBoard() {
   }, [session?.id])
 
   const handleReveal = useCallback(async (noteId: string) => {
-    // Optimistic update
     setNotes(prev => prev.map(n =>
       n.id === noteId ? { ...n, status: 'revealed', revealed_at: new Date().toISOString() } : n
     ))
@@ -156,6 +155,17 @@ export default function CorkBoard() {
       await revealNote(noteId)
     } catch (e) {
       console.error('Failed to reveal note:', e)
+    }
+  }, [])
+
+  const handleClose = useCallback(async (noteId: string) => {
+    setNotes(prev => prev.map(n =>
+      n.id === noteId ? { ...n, status: 'closed', revealed_at: null } : n
+    ))
+    try {
+      await closeNote(noteId)
+    } catch (e) {
+      console.error('Failed to close note:', e)
     }
   }, [])
 
@@ -260,13 +270,19 @@ export default function CorkBoard() {
                 לוח השעם הדיגיטלי
               </div>
               <div style={{ width: 1, height: 18, background: 'rgba(255,220,170,.20)' }} />
+              {/* NGG logo */}
               <div style={{
-                fontFamily: 'var(--font-ui)',
-                fontSize: 12,
-                opacity: .65,
-                letterSpacing: '.5px',
+                background: 'rgba(255,255,255,0.10)',
+                borderRadius: 6,
+                padding: '2px 7px',
+                display: 'flex',
+                alignItems: 'center',
               }}>
-                {session.slug}
+                <img
+                  src="/ngg-logo.png"
+                  alt="NGG"
+                  style={{ height: 26, display: 'block' }}
+                />
               </div>
             </div>
 
@@ -278,6 +294,7 @@ export default function CorkBoard() {
                 notes={visibleNotes}
                 alignment="right"
                 onReveal={handleReveal}
+                onClose={handleClose}
                 newNoteIds={newNoteIds}
               />
 
@@ -290,6 +307,7 @@ export default function CorkBoard() {
                 notes={hiddenNotes}
                 alignment="left"
                 onReveal={handleReveal}
+                onClose={handleClose}
                 newNoteIds={newNoteIds}
               />
             </div>

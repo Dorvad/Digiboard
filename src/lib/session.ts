@@ -40,6 +40,15 @@ export async function revealNote(noteId: string): Promise<void> {
   if (error) throw error
 }
 
+export async function closeNote(noteId: string): Promise<void> {
+  const { error } = await supabase
+    .from('notes')
+    .update({ status: 'closed', revealed_at: null })
+    .eq('id', noteId)
+
+  if (error) throw error
+}
+
 export async function insertNote(note: NoteInsert): Promise<Note> {
   const { data, error } = await supabase
     .from('notes')

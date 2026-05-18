@@ -7,10 +7,11 @@ interface BoardSideProps {
   notes: Note[]
   alignment: 'right' | 'left'
   onReveal: (id: string) => void
+  onClose: (id: string) => void
   newNoteIds: Set<string>
 }
 
-export default function BoardSide({ title, notes, alignment, onReveal, newNoteIds }: BoardSideProps) {
+export default function BoardSide({ title, notes, alignment, onReveal, onClose, newNoteIds }: BoardSideProps) {
   return (
     <div
       className="board-side"
@@ -36,6 +37,7 @@ export default function BoardSide({ title, notes, alignment, onReveal, newNoteId
             note={note}
             layout={resolveNoteLayout(note, i)}
             onReveal={onReveal}
+            onClose={onClose}
             isNew={newNoteIds.has(note.id)}
           />
         ))}

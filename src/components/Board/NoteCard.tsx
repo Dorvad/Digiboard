@@ -7,12 +7,15 @@ interface NoteCardProps {
   note: Note
   layout: NoteLayout
   onReveal: (id: string) => void
+  onClose: (id: string) => void
   isNew?: boolean
 }
 
-type FlipPhase = 'flipping' | null
+type FlipPhase = 'flipping' | 'flipping-rev' | null
 
-export default function NoteCard({ note, layout, onReveal, isNew = false }: NoteCardProps) {
+const FLIP_DURATION = 1200
+
+export default function NoteCard({ note, layout, onReveal, onClose, isNew = false }: NoteCardProps) {
   const [phase, setPhase] = useState<FlipPhase>(null)
   const [showLanding, setShowLanding] = useState(isNew)
   const timers = useRef<ReturnType<typeof setTimeout>[]>([])
@@ -28,19 +31,37 @@ export default function NoteCard({ note, layout, onReveal, isNew = false }: Note
   const isOpen = note.status === 'revealed'
 
   function handleClick() {
-    if (isOpen || phase !== null) return
+    if (phase !== null) return
 
-    setPhase('flipping')
-    // Persist reveal at the start of the flip
-    const t1 = setTimeout(() => onReveal(note.id), 50)
-    const t2 = setTimeout(() => setPhase(null), 1100)
-    timers.current.push(t1, t2)
+    if (!isOpen) {
+      // Flip open
+      setPhase('flipping')
+      const t1 = setTimeout(() => onReveal(note.id), 50)
+      const t2 = setTimeout(() => setPhase(null), FLIP_DURATION)
+      timers.current.push(t1, t2)
+    } else {
+      // Flip back closed
+      setPhase('flipping-rev')
+      const t1 = setTimeout(() => onClose(note.id), 50)
+      const t2 = setTimeout(() => setPhase(null), FLIP_DURATION)
+      timers.current.push(t1, t2)
+    }
   }
+
+  // During forward flip: note is heading to open (show open face after midpoint)
+  // During reverse flip: note is heading to closed (show closed face after midpoint)
+  // Without animation: just reflect DB status
+  const showOpen = phase === 'flipping'
+    ? true
+    : phase === 'flipping-rev'
+      ? false
+      : isOpen
 
   const classes = [
     'note-card',
-    isOpen && !phase ? 'note-open' : '',
+    showOpen && !phase ? 'note-open' : '',
     phase === 'flipping' ? 'note-flipping' : '',
+    phase === 'flipping-rev' ? 'note-flipping-rev' : '',
     showLanding ? 'note-landing' : '',
   ].filter(Boolean).join(' ')
 
@@ -53,13 +74,14 @@ export default function NoteCard({ note, layout, onReveal, isNew = false }: Note
         transform: `rotate(${layout.rotation}deg)`,
         '--note-bg': layout.color,
         '--note-rot': `${layout.rotation}deg`,
+        cursor: phase ? 'default' : 'pointer',
       } as React.CSSProperties}
       onClick={handleClick}
-      role={isOpen ? undefined : 'button'}
-      aria-label={isOpen ? undefined : 'גלה פתק'}
-      tabIndex={isOpen ? undefined : 0}
+      role="button"
+      aria-label={isOpen ? 'סגור פתק' : 'גלה פתק'}
+      tabIndex={0}
       onKeyDown={e => {
-        if (!isOpen && (e.key === 'Enter' || e.key === ' ')) {
+        if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
           handleClick()
         }
@@ -69,7 +91,7 @@ export default function NoteCard({ note, layout, onReveal, isNew = false }: Note
         <Pushpin tone={layout.pin} noteId={note.id} />
       </div>
       <div className="note-inner">
-        <div className="note-face note-front" aria-hidden={isOpen}>
+        <div className="note-face note-front" aria-hidden={showOpen}>
           <div style={{
             position: 'absolute',
             bottom: 14,
@@ -81,7 +103,7 @@ export default function NoteCard({ note, layout, onReveal, isNew = false }: Note
             letterSpacing: 4,
           }}>···</div>
         </div>
-        <div className="note-face note-back" aria-hidden={!isOpen}>
+        <div className="note-face note-back" aria-hidden={!showOpen}>
           <div className="note-back-text">{note.content}</div>
         </div>
       </div>
