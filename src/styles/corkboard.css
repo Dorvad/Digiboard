@@ -287,16 +287,28 @@
   100% { transform: translate(0, 0) rotate(var(--note-rot, 0deg)) scale(1); }
 }
 
-/* ───────── Note hover state (when closed) ───────────────── */
+/* ───────── Note hover state ────────────────────────────────── */
 
-.note-card:not(.note-flipping):not(.note-flipping-rev):hover {
+/* Closed note: lift on hover */
+.note-card:not(.note-open):not(.note-flipping):not(.note-flipping-rev):hover {
   z-index: 10;
 }
 
-.note-card:not(.note-flipping):not(.note-flipping-rev):hover .note-inner {
+.note-card:not(.note-open):not(.note-flipping):not(.note-flipping-rev):hover .note-inner {
   transform: translateY(-4px) scale(1.02);
   transition: transform 0.2s ease;
   filter: drop-shadow(0 12px 20px rgba(40, 20, 5, .35));
+}
+
+/* Open note: subtle lift that preserves the rotateY(180deg) */
+.note-card.note-open:not(.note-flipping):not(.note-flipping-rev):hover {
+  z-index: 10;
+}
+
+.note-card.note-open:not(.note-flipping):not(.note-flipping-rev):hover .note-inner {
+  transform: translateY(-4px) scale(1.02) rotateY(180deg);
+  transition: transform 0.2s ease;
+  filter: drop-shadow(0 12px 20px rgba(40, 20, 5, .25));
 }
 
 /* ───────── Toolbar chips ────────────────────────────────── */
