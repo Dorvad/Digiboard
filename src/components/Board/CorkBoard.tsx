@@ -288,9 +288,9 @@ export default function CorkBoard() {
 
             {/* Board layout */}
             <div className="board-layout" dir="rtl">
-              {/* Right side: הגלוי (visible) */}
+              {/* Right side: הצלחה (visible) */}
               <BoardSide
-                title="הגלוי"
+                title="הצלחה"
                 notes={visibleNotes}
                 alignment="right"
                 onReveal={handleReveal}
@@ -301,9 +301,9 @@ export default function CorkBoard() {
               {/* Center divider */}
               <div className="shimmer-line" />
 
-              {/* Left side: הנסתר (hidden) */}
+              {/* Left side: פלונטר (hidden) */}
               <BoardSide
-                title="הנסתר"
+                title="פלונטר"
                 notes={hiddenNotes}
                 alignment="left"
                 onReveal={handleReveal}

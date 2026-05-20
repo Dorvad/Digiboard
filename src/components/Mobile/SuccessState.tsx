@@ -20,7 +20,7 @@ export default function SuccessState({ onSubmitAnother }: SuccessStateProps) {
     }}>
       {/* Two floating notes */}
       <div style={{ position: 'relative', width: 220, height: 220, marginBottom: 28 }}>
-        {/* Note A — הגלוי */}
+        {/* Note A — הצלחה */}
         <motion.div
           initial={{ rotate: -8, y: 0 }}
           animate={{ rotate: -10, y: [-8, 0, -8] }}
@@ -44,11 +44,11 @@ export default function SuccessState({ onSubmitAnother }: SuccessStateProps) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 16, color: 'var(--ink-2)', padding: 12, lineHeight: 1.2,
           }}>
-            הגלוי ✓
+            הצלחה ✓
           </div>
         </motion.div>
 
-        {/* Note B — הנסתר */}
+        {/* Note B — פלונטר */}
         <motion.div
           initial={{ rotate: 7, y: 0 }}
           animate={{ rotate: 9, y: [0, -8, 0] }}
@@ -72,7 +72,7 @@ export default function SuccessState({ onSubmitAnother }: SuccessStateProps) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 16, color: 'var(--ink-2)', padding: 12, lineHeight: 1.2,
           }}>
-            הנסתר ✓
+            פלונטר ✓
           </div>
         </motion.div>
 

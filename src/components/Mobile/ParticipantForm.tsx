@@ -258,7 +258,7 @@ export default function ParticipantForm() {
 
         {/* Fields */}
         <TextNoteField
-          title="הגלוי"
+          title="הצלחה"
           helper="משהו אחד קטן שהצלחתי ליישם או לבדוק מאז המפגש הקודם"
           value={visible}
           onChange={setVisible}
@@ -267,7 +267,7 @@ export default function ParticipantForm() {
         />
 
         <TextNoteField
-          title="הנסתר"
+          title="פלונטר"
           helper="הפרעה או פדיחה מהחודש האחרון (שינוי ברגע האחרון, כיבוי שריפות, משהו שלא עבד)"
           value={hidden}
           onChange={setHidden}
