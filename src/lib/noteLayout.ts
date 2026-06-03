@@ -33,34 +33,33 @@ export interface NoteLayout {
   rotation: number
 }
 
-// Board canvas per side: ~680 wide, ~740 tall (accounting for header)
+// Board canvas per side: ~640 wide, ~700 tall (accounting for header)
 // Note size: 184 × 184px
-// Grid: 3 cols × 4 rows = 12 cells per side
-const COLS = 3
-const ROWS = 4
+// Grid: 4 cols × 5 rows = 20 cells per side
+// Position is derived purely from noteId hash — no race condition possible
+const COLS = 4
+const ROWS = 5
 const SIDE_W = 640
 const SIDE_H = 700
-const NOTE_W = 184
-const NOTE_H = 184
 const HEADER_OFFSET = 90
 
-export function generateNoteLayout(noteId: string, sideIndex: number): NoteLayout {
+export function generateNoteLayout(noteId: string): NoteLayout {
   const hash = hashString(noteId)
 
-  const col = sideIndex % COLS
-  const row = Math.floor(sideIndex / COLS)
+  // Derive grid cell purely from hash — immune to concurrent submissions
+  const cellIdx = hash % (COLS * ROWS)
+  const col = cellIdx % COLS
+  const row = Math.floor(cellIdx / COLS)
 
-  const cellW = SIDE_W / COLS
-  const cellH = SIDE_H / ROWS
+  const cellW = SIDE_W / COLS  // 160px
+  const cellH = SIDE_H / ROWS  // 140px
 
-  const maxOffsetX = Math.max(0, cellW - NOTE_W - 8)
-  const maxOffsetY = Math.max(0, cellH - NOTE_H - 8)
+  // Small jitter within the cell for organic look (note is intentionally larger than cell)
+  const jitterX = seededRandom(hash) * 24
+  const jitterY = seededRandom(hash + 1) * 20
 
-  const offsetX = seededRandom(hash) * maxOffsetX
-  const offsetY = seededRandom(hash + 1) * maxOffsetY
-
-  const position_x = col * cellW + offsetX + 12
-  const position_y = row * cellH + offsetY + HEADER_OFFSET
+  const position_x = col * cellW + jitterX + 8
+  const position_y = row * cellH + jitterY + HEADER_OFFSET + 4
 
   const rotation = (seededRandom(hash + 2) - 0.5) * 16
 
@@ -70,17 +69,14 @@ export function generateNoteLayout(noteId: string, sideIndex: number): NoteLayou
   return { color, pin, position_x, position_y, rotation }
 }
 
-export function resolveNoteLayout(
-  note: {
-    id: string
-    color: string | null
-    pin: string | null
-    position_x: number | null
-    position_y: number | null
-    rotation: number | null
-  },
-  sideIndex: number
-): NoteLayout {
+export function resolveNoteLayout(note: {
+  id: string
+  color: string | null
+  pin: string | null
+  position_x: number | null
+  position_y: number | null
+  rotation: number | null
+}): NoteLayout {
   if (
     note.position_x !== null &&
     note.position_y !== null &&
@@ -96,5 +92,5 @@ export function resolveNoteLayout(
       rotation: note.rotation,
     }
   }
-  return generateNoteLayout(note.id, sideIndex)
+  return generateNoteLayout(note.id)
 }

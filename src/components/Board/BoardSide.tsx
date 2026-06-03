@@ -31,11 +31,11 @@ export default function BoardSide({ title, notes, alignment, onReveal, onClose, 
 
       {/* Note canvas — overflow visible so landing animation can start off-screen */}
       <div className="board-side-canvas">
-        {notes.map((note, i) => (
+        {notes.map((note) => (
           <NoteCard
             key={note.id}
             note={note}
-            layout={resolveNoteLayout(note, i)}
+            layout={resolveNoteLayout(note)}
             onReveal={onReveal}
             onClose={onClose}
             isNew={newNoteIds.has(note.id)}

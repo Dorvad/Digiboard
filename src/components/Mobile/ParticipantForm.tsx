@@ -79,12 +79,9 @@ export default function ParticipantForm() {
     setError(null)
 
     try {
-      const visibleNotes = session ? (await supabase.from('notes').select('id').eq('session_id', session.id).eq('type', 'visible')).data?.length ?? 0 : 0
-      const hiddenNotes = session ? (await supabase.from('notes').select('id').eq('session_id', session.id).eq('type', 'hidden')).data?.length ?? 0 : 0
-
       if (visible.trim()) {
         const id = crypto.randomUUID()
-        const layout = generateNoteLayout(id, visibleNotes)
+        const layout = generateNoteLayout(id)
         await insertNote({
           id,
           session_id: session.id,
@@ -96,7 +93,7 @@ export default function ParticipantForm() {
 
       if (hidden.trim()) {
         const id = crypto.randomUUID()
-        const layout = generateNoteLayout(id, hiddenNotes)
+        const layout = generateNoteLayout(id)
         await insertNote({
           id,
           session_id: session.id,
