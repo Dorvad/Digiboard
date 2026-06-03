@@ -51,7 +51,7 @@ export default function QRModal({ sessionSlug, onClose }: QRModalProps) {
         }}>
           <QRCodeSVG
             value={joinUrl}
-            size={200}
+            size={320}
             bgColor="#ffffff"
             fgColor="#2a241d"
             level="M"

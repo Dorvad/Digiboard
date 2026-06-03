@@ -419,11 +419,11 @@ button.tool-chip {
 .modal-box {
   background: var(--paper);
   border-radius: 20px;
-  padding: 32px;
+  padding: 36px 40px;
   text-align: center;
   box-shadow: 0 32px 80px rgba(0, 0, 0, .35);
   direction: rtl;
-  min-width: 340px;
+  min-width: 440px;
 }
 
 /* ───────── Confirm dialog ───────────────────────────────── */
