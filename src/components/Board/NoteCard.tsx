@@ -8,17 +8,23 @@ interface NoteCardProps {
   layout: NoteLayout
   onReveal: (id: string) => void
   onClose: (id: string) => void
+  onMove: (id: string, x: number, y: number) => void
+  scale: number
   isNew?: boolean
 }
 
 type FlipPhase = 'flipping' | 'flipping-rev' | null
 
 const FLIP_DURATION = 1200
+const DRAG_THRESHOLD = 6 // px in board-space before drag mode kicks in
 
-export default function NoteCard({ note, layout, onReveal, onClose, isNew = false }: NoteCardProps) {
+export default function NoteCard({ note, layout, onReveal, onClose, onMove, scale, isNew = false }: NoteCardProps) {
   const [phase, setPhase] = useState<FlipPhase>(null)
   const [showLanding, setShowLanding] = useState(isNew)
+  const [localPos, setLocalPos] = useState<{ x: number; y: number } | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
   const timers = useRef<ReturnType<typeof setTimeout>[]>([])
+  const dragRef = useRef<{ startMouseX: number; startMouseY: number; startNoteX: number; startNoteY: number; moved: boolean } | null>(null)
 
   useEffect(() => {
     if (isNew) {
@@ -30,17 +36,14 @@ export default function NoteCard({ note, layout, onReveal, onClose, isNew = fals
 
   const isOpen = note.status === 'revealed'
 
-  function handleClick() {
+  function triggerFlip() {
     if (phase !== null) return
-
     if (!isOpen) {
-      // Flip open
       setPhase('flipping')
       const t1 = setTimeout(() => onReveal(note.id), 50)
       const t2 = setTimeout(() => setPhase(null), FLIP_DURATION)
       timers.current.push(t1, t2)
     } else {
-      // Flip back closed
       setPhase('flipping-rev')
       const t1 = setTimeout(() => onClose(note.id), 50)
       const t2 = setTimeout(() => setPhase(null), FLIP_DURATION)
@@ -48,14 +51,71 @@ export default function NoteCard({ note, layout, onReveal, onClose, isNew = fals
     }
   }
 
-  // During forward flip: note is heading to open (show open face after midpoint)
-  // During reverse flip: note is heading to closed (show closed face after midpoint)
-  // Without animation: just reflect DB status
+  function handleMouseDown(e: React.MouseEvent) {
+    if (phase !== null) return
+    e.preventDefault()
+
+    const startNoteX = layout.position_x
+    const startNoteY = layout.position_y
+
+    dragRef.current = {
+      startMouseX: e.clientX,
+      startMouseY: e.clientY,
+      startNoteX,
+      startNoteY,
+      moved: false,
+    }
+
+    function onMouseMove(ev: MouseEvent) {
+      if (!dragRef.current) return
+      const dx = (ev.clientX - dragRef.current.startMouseX) / scale
+      const dy = (ev.clientY - dragRef.current.startMouseY) / scale
+
+      if (!dragRef.current.moved) {
+        if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return
+        dragRef.current.moved = true
+        setIsDragging(true)
+      }
+
+      setLocalPos({
+        x: dragRef.current.startNoteX + dx,
+        y: dragRef.current.startNoteY + dy,
+      })
+    }
+
+    function onMouseUp(ev: MouseEvent) {
+      document.removeEventListener('mousemove', onMouseMove)
+      document.removeEventListener('mouseup', onMouseUp)
+
+      if (dragRef.current?.moved) {
+        const dx = (ev.clientX - dragRef.current.startMouseX) / scale
+        const dy = (ev.clientY - dragRef.current.startMouseY) / scale
+        const finalX = dragRef.current.startNoteX + dx
+        const finalY = dragRef.current.startNoteY + dy
+        onMove(note.id, finalX, finalY)
+        setLocalPos(null)
+        setIsDragging(false)
+      } else {
+        setLocalPos(null)
+        setIsDragging(false)
+        triggerFlip()
+      }
+
+      dragRef.current = null
+    }
+
+    document.addEventListener('mousemove', onMouseMove)
+    document.addEventListener('mouseup', onMouseUp)
+  }
+
   const showOpen = phase === 'flipping'
     ? true
     : phase === 'flipping-rev'
       ? false
       : isOpen
+
+  const posX = localPos ? localPos.x : layout.position_x
+  const posY = localPos ? localPos.y : layout.position_y
 
   const classes = [
     'note-card',
@@ -69,21 +129,23 @@ export default function NoteCard({ note, layout, onReveal, onClose, isNew = fals
     <div
       className={classes}
       style={{
-        left: `${layout.position_x}px`,
-        top: `${layout.position_y}px`,
+        left: `${posX}px`,
+        top: `${posY}px`,
         transform: `rotate(${layout.rotation}deg)`,
         '--note-bg': layout.color,
         '--note-rot': `${layout.rotation}deg`,
-        cursor: phase ? 'default' : 'pointer',
+        cursor: phase ? 'default' : isDragging ? 'grabbing' : 'grab',
+        zIndex: isDragging ? 100 : undefined,
+        transition: isDragging ? 'none' : undefined,
       } as React.CSSProperties}
-      onClick={handleClick}
+      onMouseDown={handleMouseDown}
       role="button"
       aria-label={isOpen ? 'סגור פתק' : 'גלה פתק'}
       tabIndex={0}
       onKeyDown={e => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
-          handleClick()
+          triggerFlip()
         }
       }}
     >

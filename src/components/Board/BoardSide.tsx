@@ -8,10 +8,12 @@ interface BoardSideProps {
   alignment: 'right' | 'left'
   onReveal: (id: string) => void
   onClose: (id: string) => void
+  onMove: (id: string, x: number, y: number) => void
+  scale: number
   newNoteIds: Set<string>
 }
 
-export default function BoardSide({ title, notes, alignment, onReveal, onClose, newNoteIds }: BoardSideProps) {
+export default function BoardSide({ title, notes, alignment, onReveal, onClose, onMove, scale, newNoteIds }: BoardSideProps) {
   return (
     <div
       className="board-side"
@@ -38,6 +40,8 @@ export default function BoardSide({ title, notes, alignment, onReveal, onClose, 
             layout={resolveNoteLayout(note)}
             onReveal={onReveal}
             onClose={onClose}
+            onMove={onMove}
+            scale={scale}
             isNew={newNoteIds.has(note.id)}
           />
         ))}

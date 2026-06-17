@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { upsertSession, fetchNotes, revealNote, closeNote, deleteAllNotes, toggleSessionLock } from '@/lib/session'
+import { upsertSession, fetchNotes, revealNote, closeNote, deleteAllNotes, toggleSessionLock, updateNotePosition } from '@/lib/session'
 import type { Session, Note } from '@/types/database'
 import BoardSide from './BoardSide'
 import AdminToolbar from './AdminToolbar'
@@ -190,6 +190,17 @@ export default function CorkBoard() {
     }
   }, [session])
 
+  const handleMove = useCallback(async (noteId: string, x: number, y: number) => {
+    setNotes(prev => prev.map(n =>
+      n.id === noteId ? { ...n, position_x: x, position_y: y } : n
+    ))
+    try {
+      await updateNotePosition(noteId, x, y)
+    } catch (e) {
+      console.error('Failed to move note:', e)
+    }
+  }, [])
+
   const visibleNotes = notes.filter(n => n.type === 'visible')
   const hiddenNotes = notes.filter(n => n.type === 'hidden')
 
@@ -295,6 +306,8 @@ export default function CorkBoard() {
                 alignment="right"
                 onReveal={handleReveal}
                 onClose={handleClose}
+                onMove={handleMove}
+                scale={scale}
                 newNoteIds={newNoteIds}
               />
 
@@ -308,6 +321,8 @@ export default function CorkBoard() {
                 alignment="left"
                 onReveal={handleReveal}
                 onClose={handleClose}
+                onMove={handleMove}
+                scale={scale}
                 newNoteIds={newNoteIds}
               />
             </div>

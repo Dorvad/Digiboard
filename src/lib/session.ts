@@ -69,6 +69,15 @@ export async function deleteAllNotes(sessionId: string): Promise<void> {
   if (error) throw error
 }
 
+export async function updateNotePosition(noteId: string, x: number, y: number): Promise<void> {
+  const { error } = await supabase
+    .from('notes')
+    .update({ position_x: x, position_y: y })
+    .eq('id', noteId)
+
+  if (error) throw error
+}
+
 export async function toggleSessionLock(sessionId: string, isLocked: boolean): Promise<void> {
   const { error } = await supabase
     .from('sessions')
